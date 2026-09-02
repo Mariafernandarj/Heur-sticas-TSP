@@ -1,0 +1,29 @@
+# Binarios compilados y ejecutables
+*.exe
+*.exe-
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+bin/
+/main
+
+# Bases de datos locales (útil para tu SQLite)
+*.db
+*.sqlite
+*.sqlite3
+
+# Variables de entorno y credenciales
+.env
+*.env
+
+# Archivos de configuración de IDEs y Sistema Operativo
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Carpeta de dependencias (si usas Go Modules no es necesario subirla)
+vendor/
