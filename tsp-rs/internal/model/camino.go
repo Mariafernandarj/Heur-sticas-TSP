@@ -3,19 +3,10 @@ package model
 import (
 	//"fmt"
 	"math"
+	//"tsp-rs/internal/data"
 )
 
 const R = 6_373_000.0 // Radio de la Tierra
-
-// Representación de una fila en la tabla 'cities'
-type Ciudad struct {
-	ID        int
-	Nombre    string
-	Pais      string
-	Poblacion int
-	Latitud   float64
-	Longitud  float64
-}
 
 // Recibe latitud/longitud en grados y lo devuelve la distancia en metros
 func DistanciaNatural(latU, longU, latV, longV float64) float64 {

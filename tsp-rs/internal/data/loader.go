@@ -28,15 +28,15 @@ func CargarArchivo(path string) ([]int, error) {
 }
 
 // Función para recbir archivo desde la terminal
-func RecibirArchivo() error {
+func RecibirArchivo() ([]int, error) {
 	rutaPtr := flag.String("path", "input.tsp", "Ruta del archivo de entrada .tsp")
 	flag.Parse()
 
 	datos, err := CargarArchivo(*rutaPtr)
 	if err != nil {
-		return fmt.Errorf("al cargar archivo: %w", err)
+		return nil, fmt.Errorf("al cargar archivo: %w", err)
 	}
 	fmt.Printf("Se leyeron ls %d elementos correctamente:\n", len(datos))
 	fmt.Println(datos)
-	return nil
+	return datos, nil
 }
