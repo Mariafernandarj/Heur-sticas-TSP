@@ -1,0 +1,86 @@
+package test
+
+import (
+	"os"
+	"path/filepath"
+	"reflect"
+	"testing"
+	"tsp-rs/internal/data"
+	"tsp-rs/internal/model"
+)
+
+func TestCargarArchivo_Exito(t *testing.T) {
+	// Crear un archivo temporal que se elimina automáticamente al terminar la prueba
+	dirTemp := t.TempDir()
+	rutaArchivo := filepath.Join(dirTemp, "input.tsp")
+
+	// Escribir datos de prueba en el archivo
+	contenido := "1,2,3,4,5,6,7,8,9,11,12"
+	if err := os.WriteFile(rutaArchivo, []byte(contenido), 0644); err != nil {
+		t.Fatalf("Error al preparar el archivo de prueba: %v", err)
+	}
+
+	// Ejecutar el método a probar
+	resultado, err := data.CargarArchivo(rutaArchivo)
+
+	// Verificaciones
+	if err != nil {
+		t.Fatalf("Se esperaba éxito pero ocurrió un error: %v", err)
+	}
+
+	esperado := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12}
+	if !reflect.DeepEqual(resultado, esperado) {
+		t.Errorf("El resultado no coincide.\nObtenido: %v\nEsperado: %v", resultado, esperado)
+	}
+}
+
+func TestCargarArchivo_ArchivoNoExiste(t *testing.T) {
+	_, err := data.CargarArchivo("ruta_inexistente.tsp")
+	if err == nil {
+		t.Error("Se esperaba un error al intentar abrir un archivo inexistente, pero err fue nil")
+	}
+}
+
+func TestDistanciaNatural(t *testing.T) {
+	// Definimos la estructura de la tabla de casos de prueba
+	tests := []struct {
+		name     string
+		latU     float64
+		longU    float64
+		latV     float64
+		longV    float64
+		expected float64
+	}{
+		{
+			name:     "Distancia entre Ciudad 1 y Ciudad 2",
+			latU:     35.68500000000000227,
+			longU:    139.7510000000000047,
+			latV:     14.60420000000000051,
+			longV:    120.9819999999999994,
+			expected: 2999396.229999999982,
+		},
+		{
+			name:     "Misma ubicación (distancia cero)",
+			latU:     35.685,
+			longU:    139.751,
+			latV:     35.685,
+			longV:    139.751,
+			expected: 0.0,
+		},
+	}
+
+	// Margen de tolerancia aceptable para comparación de float64 (ej. 0.001 metros / 1 mm)
+	const tolerance = 1e-3
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := model.DistanciaNatural(tt.latU, tt.longU, tt.latV, tt.longV)
+
+			// Verificamos si la diferencia absoluta está dentro del margen permitido
+			diff := math.Abs(got - tt.expected)
+			if diff > tolerance {
+				t.Errorf("distanciaNatural() = %v, se esperaba %v (diferencia de %v)", got, tt.expected, diff)
+			}
+		})
+	}
+}

@@ -1,0 +1,51 @@
+package data
+
+import (
+	"database/sql"
+	"os"
+	_ "modernc.org/sqlite"
+)
+
+type Ciudad struct {
+     Nombre string
+     Poblacion int
+}
+
+// Se inicializa la base de datos en memoria y ejecuta el script inicial
+func InicioDB(scriptPath string) (*sql.DB, error) {
+     db, err := sql.Open("sqlite", ":memory:")
+     if err != nil {
+     	return nil, err
+     }
+
+     script, err := os.ReadFile(scriptPath)
+     if err != nil {
+     	db.Close()
+	return nil, err
+     }
+
+     if _, err := db.Exec(string(script)); err != nil {
+     	db.Close()
+	return nil, err
+     }
+     return db, nil
+}
+
+//Obtener ciudades de la base de datos para comprobar que la carga esta bien
+func GetCiudades(db *sql.DB) ([]Ciudad, error){
+     rows, err := db.Query("SELECT name, population FROM cities LIMIT 10")
+     if err != nil {
+     	return nil, err
+     }
+     defer rows.Close()
+
+     var ciudades []Ciudad
+     for rows.Next() {
+     	 var c Ciudad
+	 if err := rows.Scan(&c.Nombre, &c.Poblacion); err != nil {
+	    return nil, err
+	 }
+	 ciudades = append(ciudades, c)
+     }
+     return ciudades, nil
+}
