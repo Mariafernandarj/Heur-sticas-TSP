@@ -87,13 +87,13 @@ func calcularDistancia(c1, c2 data.Ciudad) float64 {
 	return DistanciaNatural(c1.Latitud, c1.Longitud, c2.Latitud, c2.Longitud)
 }
 
-func ImprimirGrafica(grafo *GraficaTSP) {
+func ImprimirGrafica(grafica *GraficaTSP) {
 	fmt.Println("\n========== GRAFO TSP ==========")
 
 	// Mostrar ciudades
 	fmt.Println("\n--- Ciudades ---")
 
-	for i, ciudad := range grafo.Ciudades {
+	for i, ciudad := range grafica.Ciudades {
 		fmt.Printf(
 			"[%d] ID: %d | Nombre: %s | Lat: %.6f | Lon: %.6f\n",
 			i,
@@ -109,17 +109,17 @@ func ImprimirGrafica(grafo *GraficaTSP) {
 
 	// Encabezado
 	fmt.Printf("%8s", "")
-	for i := range grafo.Matriz {
+	for i := range grafica.Matriz {
 		fmt.Printf("%12d", i)
 	}
 	fmt.Println()
 
 	// Filas
-	for i := range grafo.Matriz {
+	for i := range grafica.Matriz {
 		fmt.Printf("%8d", i)
 
-		for j := range grafo.Matriz[i] {
-			distancia := grafo.Matriz[i][j]
+		for j := range grafica.Matriz[i] {
+			distancia := grafica.Matriz[i][j]
 
 			if math.IsInf(distancia, 1) {
 				fmt.Printf("%12s", "INF")

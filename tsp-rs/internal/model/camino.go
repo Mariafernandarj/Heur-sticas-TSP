@@ -3,7 +3,7 @@ package model
 import (
 	//"fmt"
 	"math"
-	//"tsp-rs/internal/data"
+	//"sort"
 )
 
 const R = 6_373_000.0 // Radio de la Tierra
