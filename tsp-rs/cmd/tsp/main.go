@@ -43,4 +43,8 @@ func main() {
 		log.Fatal("Error calculando distancia máxima:", err)
 	}
 	log.Printf("Distancia máxima encontrada: %.2f (entre %v y %v)\n", peso, arista.U, arista.V)
+
+	// --- Prueba de Normalizador ---
+	N := model.Normalizador(grafica)
+	log.Printf("Valor de normalización (N): %.2f\n", N)
 }
