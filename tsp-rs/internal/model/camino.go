@@ -104,3 +104,26 @@ func PesoAumentado(grafica *GraficaTSP, idxU, idxV int, N float64) float64 {
 	}
 	return peso
 }
+
+func EvaluarTrayectoria(grafica *GraficaTSP, path []int, N float64) (float64, error) {
+	if len(path) < 2 {
+		return 0, fmt.Errorf("La trayectoria necesita al menos 2 ciudaes")
+	}
+	var suma float64
+	for i := 0; i < len(path)-1; i++ {
+		idxU, okU := grafica.IndicePorID[path[i]]
+		idxV, okV := grafica.IndicePorID[path[i+1]]
+		if !okU || !okV {
+			return 0, fmt.Errorf("La ciudad %d o %d no pertenece a esta instancia", path[i], path[i+1])
+		}
+		suma += PesoAumentado(grafica, idxU, idxV, N)
+	}
+	return suma, nil
+}
+
+func Costo(evaluacion, N float64) float64 {
+	if N == 0 {
+		return math.Inf(1)
+	}
+	return evaluacion / N
+}
