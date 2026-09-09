@@ -82,7 +82,25 @@ func Normalizador(grafica *GraficaTSP) float64 {
 	return N
 }
 
-// función de peso aumentada
-func PesoAumentado() {
+// Revisa si una solución es factible
+func EsFactible(grafica *GraficaTSP, path []int) bool {
+	for i := 0; i < len(path)-1; i++ {
+		idxU, okU := grafica.IndicePorID[path[i]]
+		idxV, okV := grafica.IndicePorID[path[i+1]]
+		if !okU || !okV {
+			return false
+		}
+		if math.IsInf(grafica.Matriz[idxU][idxV], 1) {
+			return false
+		}
+	}
+	return true
+}
 
+func PesoAumentado(grafica *GraficaTSP, idxU, idxV int, N float64) float64 {
+	peso := grafica.Matriz[idxU][idxV]
+	if math.IsInf(peso, 1) {
+		return N + 1
+	}
+	return peso
 }
