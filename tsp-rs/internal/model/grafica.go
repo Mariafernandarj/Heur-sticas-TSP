@@ -44,6 +44,12 @@ func inicializarMatriz(n int) [][]float64 {
 			} else {
 				matriz[i][j] = math.Inf(1)
 			}
+			/*if i != j {
+					matriz[i][j] = PesoAumentado()
+				} else {
+				    matriz[i][j] = 0
+			    }
+			*/
 		}
 	}
 	return matriz
@@ -73,7 +79,7 @@ func cargarConexiones(db *sql.DB, ciudades []data.Ciudad, indicePorID map[int]in
 		distancia := calcularDistancia(ciudades[i], ciudades[j])
 
 		matriz[i][j] = distancia
-		matriz[i][j] = distancia
+		matriz[j][i] = distancia
 
 	}
 

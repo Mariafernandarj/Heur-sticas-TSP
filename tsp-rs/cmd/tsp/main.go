@@ -30,10 +30,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("[3/4] OK: Gráfica construida en memoria.")
+	//log.Println("[3/4] OK: Gráfica construida en memoria.")
 
-	log.Println("[4/4] Imprimiendo gráfica resultante:")
-	model.ImprimirGrafica(grafica)
+	//log.Println("[4/4] Imprimiendo gráfica resultante:")
+	//model.ImprimirGrafica(grafica)
 
-	log.Println("[4/4] Imprimiendo gráfica resultante:")
+	//log.Println("[4/4] Imprimiendo gráfica resultante:")
+
+	// --- Prueba de DistanciaMaxima ---
+	peso, arista, err := model.DistanciaMaxima(*grafica)
+	if err != nil {
+		log.Fatal("Error calculando distancia máxima:", err)
+	}
+	log.Printf("Distancia máxima encontrada: %.2f (entre %v y %v)\n", peso, arista.U, arista.V)
 }

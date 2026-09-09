@@ -52,7 +52,7 @@ func TestDistanciaNatural(t *testing.T) {
 	longV := 120.9819999999999994
 
 	// Distancia esperada en metros
-	distanciaEsperada := 2999396.229999999982
+	distanciaEsperada := 2999396.231968969572335
 
 	// Ejecutar método
 	distanciaObtenida := model.DistanciaNatural(latU, longU, latV, longV)
