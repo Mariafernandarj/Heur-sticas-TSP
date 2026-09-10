@@ -11,14 +11,14 @@ func Vecino(rng *rand.Rand, s []int) []int {
 	vecino := make([]int, n)
 	copy(vecino, s)
 
-	if n < 4 {
+	if n < 3 {
 		return vecino
 	}
-	i := 1 + rng.Intn(n-2)
-	j := 1 + rng.Intn(n-2)
+	i := 1 + rng.Intn(n)
+	j := 1 + rng.Intn(n)
 
 	for j == i {
-		j = 1 + rng.Intn(n-2)
+		j = 1 + rng.Intn(n)
 	}
 
 	if i > j {
@@ -29,5 +29,4 @@ func Vecino(rng *rand.Rand, s []int) []int {
 		vecino[a], vecino[b] = vecino[b], vecino[a]
 	}
 	return vecino
-
 }
