@@ -63,3 +63,36 @@ func BusquedaBinaria(rng *rand.Rand, grafica *GraficaTSP, s []int, T1, T2, Acept
 
 	return BusquedaBinaria(rng, grafica, s, Tm, T2, Aceptacion, epsilonP, N, iteraciones)
 }
+
+func TemperaturaInicial(rng *rand.Rand, grafica *GraficaTSP, s []int, T, Aceptacion, epsilonP, N float64, iteraciones int) (float64, error) {
+	p, err := PorcentajeAceptados(rng, grafica, s, T, N, iteraciones)
+	if err != nil {
+		return 0, err
+	}
+
+	if math.Abs(Aceptacion-p) <= epsilonP {
+		return T, nil
+	}
+
+	var T1, T2 float64
+	if p < Aceptacion {
+		for p < Aceptacion {
+			T *= 2
+			p, err = PorcentajeAceptados(rng, grafica, s, T, N, iteraciones)
+			if err != nil {
+				return 0, err
+			}
+		}
+		T1, T2 = T/2, T
+	} else {
+		for p > Aceptacion {
+			T /= 2
+			p, err = PorcentajeAceptados(rng, grafica, s, T, N, iteraciones)
+			if err != nil {
+				return 0, err
+			}
+		}
+		T1, T2 = T, T*2
+	}
+	return BusquedaBinaria(rng, grafica, s, T1, T2, P, epsilonP, N, iteraciones)
+}
