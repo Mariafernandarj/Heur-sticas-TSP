@@ -7,6 +7,8 @@ import (
 	"tsp-rs/internal/data"
 )
 
+const R = 6_373_000.0 // Radio de la Tierra
+
 type GraficaTSP struct {
 	Ciudades    []data.Ciudad
 	IndicePorID map[int]int
@@ -91,6 +93,24 @@ func cargarConexiones(db *sql.DB, ciudades []data.Ciudad, indicePorID map[int]in
 
 func calcularDistancia(c1, c2 data.Ciudad) float64 {
 	return DistanciaNatural(c1.Latitud, c1.Longitud, c2.Latitud, c2.Longitud)
+}
+
+// Recibe latitud/longitud en grados y lo devuelve la distancia en metros
+func DistanciaNatural(latU, longU, latV, longV float64) float64 {
+	latUR := latU * math.Pi / 180
+	longUR := longU * math.Pi / 180
+	latVR := latV * math.Pi / 180
+	longVR := longV * math.Pi / 180
+
+	distanciaLat := latVR - latUR
+	distanciaLong := longVR - longUR
+
+	A := math.Pow(math.Sin(distanciaLat/2), 2) +
+		math.Cos(latUR)*math.Cos(latVR)*math.Pow(math.Sin(distanciaLong/2), 2)
+
+	C := 2 * math.Atan2(math.Sqrt(A), math.Sqrt(1-A))
+
+	return R * C
 }
 
 func ImprimirGrafica(grafica *GraficaTSP) {
