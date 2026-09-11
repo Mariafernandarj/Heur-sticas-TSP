@@ -1,0 +1,8 @@
+// tsp-rs/internal/domain/ciudad.go
+package domain
+
+type Ciudad struct {
+    ID     int
+    Nombre string
+    // ...demás campos
+}
