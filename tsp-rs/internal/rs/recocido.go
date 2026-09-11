@@ -1,10 +1,13 @@
 package rs
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"tsp-rs/internal/model"
 )
+
+var ErrLoteIncompleto = errors.New("no se pudo completar el lote dentro del límite de intentos")
 
 func CalculaLote(rng *rand.Rand, grafica *model.GraficaTSP, T float64, s []int, N float64, params Parametros) (float64, []int, error) {
 	fS, err := f(grafica, s, N)
@@ -19,7 +22,7 @@ func CalculaLote(rng *rand.Rand, grafica *model.GraficaTSP, T float64, s []int, 
 
 	for c < params.Lote {
 		if intentos >= params.MaxIntentosPorLote {
-			return 0, nil, fmt.Errorf("No se pudo completar el lote (T=%f) tras %d intentos", T, intentos)
+			return 0, nil, fmt.Errorf("T=%f, %d intentos: %w", T, intentos, ErrLoteIncompleto)
 		}
 		intentos++
 

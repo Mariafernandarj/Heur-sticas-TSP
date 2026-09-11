@@ -38,8 +38,8 @@ func main() {
 
 	// PRUEBA: gráfica original
 
-	log.Println("Matriz de adyacencias original:")
-	model.ImprimirGrafica(grafica)
+	//log.Println("Matriz de adyacencias original:")
+	//model.ImprimirGrafica(grafica)
 
 	// --- Prueba de DistanciaMaxima ---
 	peso, arista, err := model.DistanciaMaxima(*grafica)

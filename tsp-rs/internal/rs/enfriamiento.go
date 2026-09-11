@@ -1,7 +1,7 @@
 package rs
 
 import (
-	// "fmt"
+	"errors"
 	"math"
 	"math/rand"
 	"tsp-rs/internal/model"
@@ -19,13 +19,25 @@ func AceptacionPorUmbrales(rng *rand.Rand, grafica *model.GraficaTSP, T float64,
 	p := 0.0
 	for T > params.Epsilon {
 		q := math.Inf(1)
+		lotes := 0
 		for p <= q {
+			if lotes >= params.MaxLotesPorTemperatura {
+				break
+			}
+			lotes++
 			q = p
-			var err error
-			p, s, err = CalculaLote(rng, grafica, T, s, N, params)
+			pNuevo, sNuevo, err := CalculaLote(rng, grafica, T, s, N, params)
 			if err != nil {
+				if errors.Is(err, ErrLoteIncompleto) {
+					// El umbral ya es demasiado angosto para seguir
+					// aceptando vecinos: la heurística convergió. Nos
+					// quedamos con la mejor solución vista hasta ahora en
+					// lugar de fallar.
+					return mejorS, mejorCosto, nil
+				}
 				return nil, 0, err
 			}
+			p, s = pNuevo, sNuevo
 
 			costoActual, err := f(grafica, s, N)
 			if err != nil {
