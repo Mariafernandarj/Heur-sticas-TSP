@@ -78,12 +78,15 @@ func PesoAumentado(grafica *GraficaTSP, idxU, idxV int, dMax float64) float64 {
 // Revisa si una solución es factible
 func EsFactible(grafica *GraficaTSP, path []int) bool {
 	for i := 0; i < len(path)-1; i++ {
-		idxU, okU := grafica.IndicePorID[path[i]]
-		idxV, okV := grafica.IndicePorID[path[i+1]]
-		if !okU || !okV {
+		idxU := path[i]
+		idxV := path[i+1]
+
+		if idxU < 0 || idxU >= len(grafica.MatrizOriginal) ||
+			idxV < 0 || idxV >= len(grafica.MatrizOriginal) {
 			return false
 		}
-		if math.IsInf(grafica.Matriz[idxU][idxV], 1) {
+
+		if math.IsInf(grafica.MatrizOriginal[idxU][idxV], 1) {
 			return false
 		}
 	}

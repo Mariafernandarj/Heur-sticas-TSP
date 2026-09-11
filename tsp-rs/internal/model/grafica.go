@@ -11,9 +11,10 @@ import (
 const R = 6_373_000.0 // Radio de la Tierra
 
 type GraficaTSP struct {
-	Ciudades    []data.Ciudad
-	IndicePorID map[int]int
-	Matriz      [][]float64
+	Ciudades       []data.Ciudad
+	IndicePorID    map[int]int
+	Matriz         [][]float64
+	MatrizOriginal [][]float64
 }
 
 func ConstruirMatrizAdyacencias(db *sql.DB, ids []int) (*GraficaTSP, error) {
@@ -28,10 +29,12 @@ func ConstruirMatrizAdyacencias(db *sql.DB, ids []int) (*GraficaTSP, error) {
 		return nil, err
 	}
 
+	matrizOriginal := CopiarMatriz(matriz)
 	return &GraficaTSP{
-		Ciudades:    ciudades,
-		IndicePorID: indicePorID,
-		Matriz:      matriz,
+		Ciudades:       ciudades,
+		IndicePorID:    indicePorID,
+		Matriz:         matriz,
+		MatrizOriginal: matrizOriginal,
 	}, nil
 }
 
@@ -64,11 +67,14 @@ func cargarConexiones(db *sql.DB, ciudades []data.Ciudad, indicePorID map[int]in
 	defer filasConn.Close()
 
 	for filasConn.Next() {
+		totalFilas++
 		var id1, id2 int
 
 		if err := filasConn.Scan(&id1, &id2); err != nil {
 			return fmt.Errorf("Error leyendo conections: %w", err)
 		}
+		//id1--
+		//id2--
 
 		i, okI := indicePorID[id1]
 		j, okJ := indicePorID[id2]
@@ -76,6 +82,8 @@ func cargarConexiones(db *sql.DB, ciudades []data.Ciudad, indicePorID map[int]in
 		if !okI || !okJ {
 			continue
 		}
+
+		aristasCargadas++
 
 		distancia := calcularDistancia(ciudades[i], ciudades[j])
 
@@ -124,6 +132,17 @@ func CompletarAristas(grafica *GraficaTSP, dMax float64) {
 			}
 		}
 	}
+}
+
+func CopiarMatriz(matriz [][]float64) [][]float64 {
+	copia := make([][]float64, len(matriz))
+
+	for i := range matriz {
+		copia[i] = make([]float64, len(matriz[i]))
+		copy(copia[i], matriz[i])
+	}
+
+	return copia
 }
 
 func ImprimirGrafica(grafica *GraficaTSP) {

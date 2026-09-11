@@ -9,7 +9,7 @@ import (
 
 var ErrLoteIncompleto = errors.New("no se pudo completar el lote dentro del límite de intentos")
 
-func CalculaLote(rng *rand.Rand, grafica *model.GraficaTSP, T float64, s []int, N float64, params Parametros) (float64, []int, error) {
+func CalculaLote(rng *rand.Rand, grafica *model.GraficaTSP, T float64, s []int, N float64, params Parametros, stats *Estadisticas) (float64, []int, error) {
 	fS, err := f(grafica, s, N)
 
 	if err != nil {
@@ -38,6 +38,14 @@ func CalculaLote(rng *rand.Rand, grafica *model.GraficaTSP, T float64, s []int, 
 			fS = fSPrima
 			c++
 			r += fSPrima
+			if stats != nil {
+				stats.SolucionesAceptadas++
+				if model.EsFactible(grafica, s) {
+					stats.SolucionesFactibles++
+				} else {
+					stats.SolucionesNoFactibles++
+				}
+			}
 		}
 	}
 	return r / float64(params.Lote), s, nil
@@ -71,17 +79,17 @@ func PorcentajeAceptados(rng *rand.Rand, grafica *model.GraficaTSP, s []int, T, 
 
 }
 
-func ResolverTSP(semilla int64, grafica *model.GraficaTSP, params Parametros) ([]int, float64, error) {
+func ResolverTSP(semilla int64, grafica *model.GraficaTSP, params Parametros) ([]int, float64, Estadisticas, bool, error) {
 	rng := rand.New(rand.NewSource(semilla))
 
 	dMax, _, err := model.DistanciaMaxima(*grafica)
 	if err != nil {
-		return nil, 0, fmt.Errorf("calculando distancia máxima: %w", err)
+		return nil, 0, Estadisticas{}, false, fmt.Errorf("calculando distancia máxima: %w", err)
 	}
 	N := model.Normalizador(grafica)
 
 	if N == 0 {
-		return nil, 0, fmt.Errorf("El normalizador N es 0: porfavor revisa la gráfica de entrada")
+		return nil, 0, Estadisticas{}, false, fmt.Errorf("El normalizador N es 0: porfavor revisa la gráfica de entrada")
 	}
 
 	model.CompletarAristas(grafica, dMax)
@@ -91,12 +99,14 @@ func ResolverTSP(semilla int64, grafica *model.GraficaTSP, params Parametros) ([
 	T0, err := TemperaturaInicial(rng, grafica, s, 8.0, params.Aceptacion, params.EpsilonP, N, params.IteracionesPorcentaje)
 
 	if err != nil {
-		return nil, 0, fmt.Errorf("Calculando temperatura inicial: %w", err)
+		return nil, 0, Estadisticas{}, false, fmt.Errorf("Calculando temperatura inicial: %w", err)
 	}
 
-	mejorS, mejorCosto, err := AceptacionPorUmbrales(rng, grafica, T0, s, N, params)
+	mejorS, mejorCosto, estadisticas, err := AceptacionPorUmbrales(rng, grafica, T0, s, N, params)
 	if err != nil {
-		return nil, 0, fmt.Errorf("Corriendo aceptación por umbrales: %w", err)
+		return nil, 0, estadisticas, false, fmt.Errorf("Corriendo aceptación por umbrales: %w", err)
 	}
-	return mejorS, mejorCosto, nil
+
+	mejorEsFactible := model.EsFactible(grafica, mejorS)
+	return mejorS, mejorCosto, estadisticas, mejorEsFactible, nil
 }

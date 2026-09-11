@@ -3,14 +3,14 @@ package rs
 import ()
 
 type Parametros struct {
-	Lote                   int
-	MaxIntentosPorLote     int
-	MaxLotesPorTemperatura int // cota de lotes seguidos "sin empeorar" antes de forzar el enfriamiento
-	Phi                    float64
+	Lote                   int     // Tamaño del lote
+	MaxIntentosPorLote     int     //Cota de intentos para completar un lote
+	MaxLotesPorTemperatura int     //Cota de lotes seguidos "sin empeorar" antes de forzar el enfriamiento
+	Phi                    float64 // Factor de enfriamineto
 	Epsilon                float64
-	Aceptacion             float64
+	Aceptacion             float64 // Porcentaje de aceptación objetivo para T
 	EpsilonP               float64
-	IteracionesPorcentaje  int
+	IteracionesPorcentaje  int //N en porcentajes de aceptado
 }
 
 func ParametrosPorDefecto() Parametros {

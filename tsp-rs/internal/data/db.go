@@ -79,3 +79,20 @@ func GetCiudades(db *sql.DB, ids []int) ([]Ciudad, map[int]int, error) {
 
 	return ciudades, indicePorID, nil
 }
+
+func ContarCiudadesYConexiones(db *sql.DB) (int, int, error) {
+	var totalCiudades int
+	var totalConexiones int
+
+	err := db.QueryRow("SELECT COUNT(*) FROM cities").Scan(&totalCiudades)
+	if err != nil {
+		return 0, 0, fmt.Errorf("Error contando ciudades: %w", err)
+	}
+
+	err = db.QueryRow("SELECT COUNT(*) FROM connections").Scan(&totalConexiones)
+	if err != nil {
+		return 0, 0, fmt.Errorf("Error contando conexiones: %w", err)
+	}
+
+	return totalCiudades, totalConexiones, nil
+}

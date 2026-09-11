@@ -7,13 +7,15 @@ import (
 	"tsp-rs/internal/model"
 )
 
-func AceptacionPorUmbrales(rng *rand.Rand, grafica *model.GraficaTSP, T float64, s []int, N float64, params Parametros) ([]int, float64, error) {
+func AceptacionPorUmbrales(rng *rand.Rand, grafica *model.GraficaTSP, T float64, s []int, N float64, params Parametros) ([]int, float64, Estadisticas, error) {
+
+	estadisticas := Estadisticas{}
 
 	mejorS := append([]int(nil), s...)
 	mejorCosto, err := f(grafica, s, N)
 
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, estadisticas, err
 	}
 
 	p := 0.0
@@ -26,22 +28,21 @@ func AceptacionPorUmbrales(rng *rand.Rand, grafica *model.GraficaTSP, T float64,
 			}
 			lotes++
 			q = p
-			pNuevo, sNuevo, err := CalculaLote(rng, grafica, T, s, N, params)
+			pNuevo, sNuevo, err := CalculaLote(rng, grafica, T, s, N, params, &estadisticas)
 			if err != nil {
 				if errors.Is(err, ErrLoteIncompleto) {
 					// El umbral ya es demasiado angosto para seguir
 					// aceptando vecinos: la heurística convergió. Nos
-					// quedamos con la mejor solución vista hasta ahora en
-					// lugar de fallar.
-					return mejorS, mejorCosto, nil
+					// quedamos con la mejor solución vista hasta ahora en lugar de fallar
+					return mejorS, mejorCosto, estadisticas, nil
 				}
-				return nil, 0, err
+				return nil, 0, estadisticas, err
 			}
 			p, s = pNuevo, sNuevo
 
 			costoActual, err := f(grafica, s, N)
 			if err != nil {
-				return nil, 0, err
+				return nil, 0, estadisticas, err
 			}
 			if costoActual < mejorCosto {
 				mejorCosto = costoActual
@@ -50,7 +51,7 @@ func AceptacionPorUmbrales(rng *rand.Rand, grafica *model.GraficaTSP, T float64,
 		}
 		T *= params.Phi
 	}
-	return mejorS, mejorCosto, nil
+	return mejorS, mejorCosto, estadisticas, nil
 }
 
 func BusquedaBinaria(rng *rand.Rand, grafica *model.GraficaTSP, s []int, T1, T2, Aceptacion, epsilonP, N float64, iteraciones int) (float64, error) {

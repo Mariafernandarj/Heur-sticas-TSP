@@ -28,6 +28,14 @@ func main() {
 	defer db.Close()
 	//log.Println("[2/4] OK: Conexión establecida a la base de datos.")
 
+	totalCiudades, totalConexiones, err := data.ContarCiudadesYConexiones(db)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("Ciudades: %d", totalCiudades)
+	log.Printf("Conexiones: %d", totalConexiones)
 	//log.Println("[3/4] Construyendo matriz de adyacencias...")
 	// Se construye la grafica
 	grafica, err := model.ConstruirMatrizAdyacencias(db, ids)
@@ -60,7 +68,7 @@ func main() {
 	const semilla = 42
 
 	inicio := time.Now()
-	trayectoria, costo, err := rs.ResolverTSP(semilla, grafica, params)
+	trayectoria, costo, estadisticas, esFactible, err := rs.ResolverTSP(semilla, grafica, params)
 
 	if err != nil {
 		log.Fatal("Error corriendo aceptación por umbrales:", err)
@@ -72,5 +80,10 @@ func main() {
 	log.Println("Resultado:")
 	log.Printf("  Costo (normalizado): %.6f\n", costo)
 	log.Printf("  Trayectoria (%d ciudades): %v\n", len(trayectoria), trayectoria)
+	log.Printf("  Solución final factible: %v\n", esFactible)
+	log.Printf("  Soluciones aceptadas durante la corrida: %d (factibles: %d [%.1f%%], no factibles: %d [%.1f%%])\n",
+		estadisticas.SolucionesAceptadas,
+		estadisticas.SolucionesFactibles, 100*estadisticas.PorcentajeFactibles(),
+		estadisticas.SolucionesNoFactibles, 100*(1-estadisticas.PorcentajeFactibles()))
 
 }
