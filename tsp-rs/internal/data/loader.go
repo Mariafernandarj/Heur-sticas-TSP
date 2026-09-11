@@ -37,6 +37,6 @@ func RecibirArchivo() ([]int, error) {
 		return nil, fmt.Errorf("al cargar archivo: %w", err)
 	}
 	fmt.Printf("Se leyeron ls %d elementos correctamente:\n", len(datos))
-	fmt.Println(datos)
+	//fmt.Println(datos)
 	return datos, nil
 }
