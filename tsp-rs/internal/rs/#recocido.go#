@@ -65,7 +65,6 @@ func PorcentajeAceptados(rng *rand.Rand, grafica *model.GraficaTSP, s []int, T, 
 		}
 	}
 	return float64(c) / float64(iteraciones), nil
-
 }
 
 func ResolverTSP(semilla int64, grafica *model.GraficaTSP, params Parametros) ([]int, float64, error) {

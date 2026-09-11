@@ -1,12 +1,10 @@
 package rs
 
-import (
-	"fmt"
-)
+import ()
 
 type Parametros struct {
 	Lote                  int
-	MaxIntentosLote       int
+	MaxIntentosPorLote    int
 	Phi                   float64
 	Epsilon               float64
 	Aceptacion            float64
@@ -17,7 +15,7 @@ type Parametros struct {
 func ParametrosPorDefecto() Parametros {
 	return Parametros{
 		Lote:                  50,
-		MaxIntentosLote:       2000,
+		MaxIntentosPorLote:    2000,
 		Phi:                   0.95,
 		Epsilon:               1e-6,
 		Aceptacion:            0.90,

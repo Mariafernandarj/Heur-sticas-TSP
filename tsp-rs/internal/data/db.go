@@ -59,6 +59,7 @@ func GetCiudades(db *sql.DB, ids []int) ([]Ciudad, map[int]int, error) {
 		if err := filas.Scan(&c.ID, &c.Nombre, &c.Latitud, &c.Longitud); err != nil {
 			return nil, nil, fmt.Errorf("Error leyendo ciudad: %w", err)
 		}
+		//c.ID--
 
 		if !idsSolicitados[c.ID] {
 			continue

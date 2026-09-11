@@ -1,8 +1,6 @@
 package rs
 
 import (
-	"fmt"
-	"math"
 	"math/rand"
 )
 
@@ -14,11 +12,11 @@ func Vecino(rng *rand.Rand, s []int) []int {
 	if n < 3 {
 		return vecino
 	}
-	i := 1 + rng.Intn(n)
-	j := 1 + rng.Intn(n)
+	i := rng.Intn(n)
+	j := rng.Intn(n)
 
 	for j == i {
-		j = 1 + rng.Intn(n)
+		j = rng.Intn(n)
 	}
 
 	if i > j {

@@ -3,11 +3,11 @@ package rs
 import (
 	// "fmt"
 	"math"
-	// "math/rand"
-	// "tsp-rs/internal/model"
+	"math/rand"
+	"tsp-rs/internal/model"
 )
 
-func AceptacionPorUmbrales(rng *rand.Rand, grafica *GraficaTSP, T float64, s []int, N float64, params Parametros) ([]int, float64, error) {
+func AceptacionPorUmbrales(rng *rand.Rand, grafica *model.GraficaTSP, T float64, s []int, N float64, params Parametros) ([]int, float64, error) {
 
 	mejorS := append([]int(nil), s...)
 	mejorCosto, err := f(grafica, s, N)
@@ -41,7 +41,7 @@ func AceptacionPorUmbrales(rng *rand.Rand, grafica *GraficaTSP, T float64, s []i
 	return mejorS, mejorCosto, nil
 }
 
-func BusquedaBinaria(rng *rand.Rand, grafica *GraficaTSP, s []int, T1, T2, Aceptacion, epsilonP, N float64, iteraciones int) (float64, error) {
+func BusquedaBinaria(rng *rand.Rand, grafica *model.GraficaTSP, s []int, T1, T2, Aceptacion, epsilonP, N float64, iteraciones int) (float64, error) {
 	Tm := (T1 + T2) / 2
 	if T2-T1 < epsilonP {
 		return Tm, nil
@@ -58,13 +58,13 @@ func BusquedaBinaria(rng *rand.Rand, grafica *GraficaTSP, s []int, T1, T2, Acept
 	}
 
 	if p > Aceptacion {
-		return BusquedaBInaria(rng, grafica, s, T1, Tm, Aceptacion, epsilonP, N, iteraciones)
+		return BusquedaBinaria(rng, grafica, s, T1, Tm, Aceptacion, epsilonP, N, iteraciones)
 	}
 
 	return BusquedaBinaria(rng, grafica, s, Tm, T2, Aceptacion, epsilonP, N, iteraciones)
 }
 
-func TemperaturaInicial(rng *rand.Rand, grafica *GraficaTSP, s []int, T, Aceptacion, epsilonP, N float64, iteraciones int) (float64, error) {
+func TemperaturaInicial(rng *rand.Rand, grafica *model.GraficaTSP, s []int, T, Aceptacion, epsilonP, N float64, iteraciones int) (float64, error) {
 	p, err := PorcentajeAceptados(rng, grafica, s, T, N, iteraciones)
 	if err != nil {
 		return 0, err
@@ -94,5 +94,5 @@ func TemperaturaInicial(rng *rand.Rand, grafica *GraficaTSP, s []int, T, Aceptac
 		}
 		T1, T2 = T, T*2
 	}
-	return BusquedaBinaria(rng, grafica, s, T1, T2, P, epsilonP, N, iteraciones)
+	return BusquedaBinaria(rng, grafica, s, T1, T2, Aceptacion, epsilonP, N, iteraciones)
 }

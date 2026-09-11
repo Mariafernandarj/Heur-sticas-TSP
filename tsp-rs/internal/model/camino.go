@@ -62,6 +62,19 @@ func Normalizador(grafica *GraficaTSP) float64 {
 	return N
 }
 
+func PesoAumentado(grafica *GraficaTSP, idxU, idxV int, dMax float64) float64 {
+	peso := grafica.Matriz[idxU][idxV]
+	if !math.IsInf(peso, 1) {
+		return peso
+	}
+	distancia := calcularDistancia(
+		grafica.Ciudades[idxU],
+		grafica.Ciudades[idxV],
+	)
+
+	return distancia * dMax
+}
+
 // Revisa si una solución es factible
 func EsFactible(grafica *GraficaTSP, path []int) bool {
 	for i := 0; i < len(path)-1; i++ {
@@ -77,24 +90,22 @@ func EsFactible(grafica *GraficaTSP, path []int) bool {
 	return true
 }
 
-func PesoAumentado(grafica *GraficaTSP, idxU, idxV int, N float64) float64 {
-	peso := grafica.Matriz[idxU][idxV]
-	if math.IsInf(peso, 1) {
-		return N + 1
-	}
-	return peso
-}
-
 func EvaluarTrayectoria(grafica *GraficaTSP, path []int, N float64) (float64, error) {
 	if len(path) < 2 {
 		return 0, fmt.Errorf("La trayectoria necesita al menos 2 ciudaes")
 	}
 	var suma float64
 	for i := 0; i < len(path)-1; i++ {
-		idxU, okU := grafica.IndicePorID[path[i]]
-		idxV, okV := grafica.IndicePorID[path[i+1]]
-		if !okU || !okV {
-			return 0, fmt.Errorf("La ciudad %d o %d no pertenece a esta instancia", path[i], path[i+1])
+		idxU := path[i]
+		idxV := path[i+1]
+
+		if idxU < 0 || idxU >= len(grafica.Matriz) ||
+			idxV < 0 || idxV >= len(grafica.Matriz) {
+			return 0, fmt.Errorf(
+				"El índice %d o %d está fuera de la matriz",
+				idxU,
+				idxV,
+			)
 		}
 		suma += PesoAumentado(grafica, idxU, idxV, N)
 	}

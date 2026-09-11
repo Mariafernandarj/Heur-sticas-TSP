@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"math"
 	"tsp-rs/internal/data"
 )
@@ -46,18 +47,15 @@ func inicializarMatriz(n int) [][]float64 {
 			} else {
 				matriz[i][j] = math.Inf(1)
 			}
-			/*if i != j {
-					matriz[i][j] = PesoAumentado()
-				} else {
-				    matriz[i][j] = 0
-			    }
-			*/
+
 		}
 	}
 	return matriz
 }
 
 func cargarConexiones(db *sql.DB, ciudades []data.Ciudad, indicePorID map[int]int, matriz [][]float64) error {
+
+	var totalFilas, aristasCargadas int
 	filasConn, err := db.Query("SELECT id_city_1, id_city_2 FROM connections")
 
 	if err != nil {
@@ -71,6 +69,7 @@ func cargarConexiones(db *sql.DB, ciudades []data.Ciudad, indicePorID map[int]in
 		if err := filasConn.Scan(&id1, &id2); err != nil {
 			return fmt.Errorf("Error leyendo conections: %w", err)
 		}
+
 		i, okI := indicePorID[id1]
 		j, okJ := indicePorID[id2]
 
@@ -88,6 +87,7 @@ func cargarConexiones(db *sql.DB, ciudades []data.Ciudad, indicePorID map[int]in
 	if err := filasConn.Err(); err != nil {
 		return err
 	}
+	log.Printf("Conexiones: %d filas leídas, %d aristas cargadas\n", totalFilas, aristasCargadas)
 	return nil
 }
 
@@ -111,6 +111,19 @@ func DistanciaNatural(latU, longU, latV, longV float64) float64 {
 	C := 2 * math.Atan2(math.Sqrt(A), math.Sqrt(1-A))
 
 	return R * C
+}
+
+func CompletarAristas(grafica *GraficaTSP, dMax float64) {
+	for i := 0; i < len(grafica.Matriz); i++ {
+		for j := i + 1; j < len(grafica.Matriz); j++ {
+			if math.IsInf(grafica.Matriz[i][j], 1) {
+				peso := PesoAumentado(grafica, i, j, dMax)
+
+				grafica.Matriz[i][j] = peso
+				grafica.Matriz[j][i] = peso
+			}
+		}
+	}
 }
 
 func ImprimirGrafica(grafica *GraficaTSP) {

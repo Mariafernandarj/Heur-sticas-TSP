@@ -2,16 +2,20 @@ package main
 
 import (
 	"log"
+	"time"
 	"tsp-rs/internal/data"
 	"tsp-rs/internal/model"
+	"tsp-rs/internal/rs"
 )
 
 func main() {
 	// Se recibe el archivo .tsp
 	ids, err := data.RecibirArchivo()
+
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	log.Printf("[1/4] OK: Archivo procesado correctamente (%d IDs obtenidos)\n", len(ids))
 
 	log.Println("[2/4] Conectando a la base de datos 'tsp.sql'...")
@@ -30,12 +34,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	//log.Println("[3/4] OK: Gráfica construida en memoria.")
+	log.Println("[3/4] OK: Gráfica construida en memoria.")
 
-	//log.Println("[4/4] Imprimiendo gráfica resultante:")
-	//model.ImprimirGrafica(grafica)
+	// PRUEBA: gráfica original
 
-	//log.Println("[4/4] Imprimiendo gráfica resultante:")
+	log.Println("Matriz de adyacencias original:")
+	model.ImprimirGrafica(grafica)
 
 	// --- Prueba de DistanciaMaxima ---
 	peso, arista, err := model.DistanciaMaxima(*grafica)
@@ -47,4 +51,26 @@ func main() {
 	// --- Prueba de Normalizador ---
 	N := model.Normalizador(grafica)
 	log.Printf("Valor de normalización (N): %.2f\n", N)
+
+	// --- Aceptación por umbrales ---
+	log.Println("[4/5] Corriendo la heurística de aceptación por umbrales...")
+	params := rs.ParametrosPorDefecto()
+
+	// Semilla fija
+	const semilla = 42
+
+	inicio := time.Now()
+	trayectoria, costo, err := rs.ResolverTSP(semilla, grafica, params)
+
+	if err != nil {
+		log.Fatal("Error corriendo aceptación por umbrales:", err)
+	}
+	duracion := time.Since(inicio)
+
+	log.Printf("[4/5] OK: Heurística terminada en %s\n", duracion)
+
+	log.Println("[5/5] Resultado:")
+	log.Printf("  Costo (normalizado): %.6f\n", costo)
+	log.Printf("  Trayectoria (%d ciudades): %v\n", len(trayectoria), trayectoria)
+
 }
