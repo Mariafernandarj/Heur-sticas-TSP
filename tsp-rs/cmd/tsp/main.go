@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"time"
 	"tsp-rs/internal/data"
@@ -9,6 +10,8 @@ import (
 )
 
 func main() {
+	multiPtr := flag.Bool("multi", false, "Si es true, corre varias semillas en paralelo y se queda con la mejor")
+
 	// Se recibe el archivo .tsp
 	ids, err := data.RecibirArchivo()
 
@@ -67,6 +70,11 @@ func main() {
 	// Semilla fija
 	const semilla = 42
 
+	if *multiPtr {
+		correrEnParalelo(grafica)
+		return
+	}
+
 	inicio := time.Now()
 	trayectoria, costo, estadisticas, esFactible, err := rs.ResolverTSP(semilla, grafica, params)
 
@@ -86,4 +94,32 @@ func main() {
 		estadisticas.SolucionesFactibles, 100*estadisticas.PorcentajeFactibles(),
 		estadisticas.SolucionesNoFactibles, 100*(1-estadisticas.PorcentajeFactibles()))
 
+}
+
+func correrEnParalelo(grafica *model.GraficaTSP) {
+	semillas := []int64{1, 2, 3, 4, 5, 6, 7, 8}
+	log.Printf("[4/5] Modo -multi: corriendo %d semillas en paralelo...\n", len(semillas))
+
+	params := rs.ParametrosPorDefecto()
+
+	inicio := time.Now()
+	resultados := rs.ResolverTspParalelo(grafica, params, semillas)
+	duracion := time.Since(inicio)
+
+	for _, r := range resultados {
+		if r.Err != nil {
+			log.Printf("  semilla=%d -> ERROR: %v\n", r.Semilla, r.Err)
+			continue
+		}
+		log.Printf("  semilla=%d -> costo=%.6f, factible=%v\n", r.Semilla, r.Costo, r.EsFactible)
+	}
+
+	mejor, ok := rs.MejorCorrida(resultados)
+	if !ok {
+		log.Fatal("Todas las corridas fallaron")
+	}
+
+	log.Printf("[5/5] Mejor resultado: semilla=%d, costo=%.6f, factible=%v (tardó %s en total)\n",
+		mejor.Semilla, mejor.Costo, mejor.EsFactible, duracion)
+	log.Printf("  Trayectoria (%d ciudades): %v\n", len(mejor.Trayectoria), mejor.Trayectoria)
 }

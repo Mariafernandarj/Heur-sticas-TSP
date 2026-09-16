@@ -145,6 +145,32 @@ func CopiarMatriz(matriz [][]float64) [][]float64 {
 	return copia
 }
 
+func CopiarGrafica(grafica GraficaTSP) *GraficaTSP {
+	copia := &GraficaTSP{
+		Ciudades:       make([]data.Ciudad, len(grafica.Ciudades)),
+		IndicePorID:    make(map[int]int, len(grafica.IndicePorID)),
+		Matriz:         make([][]float64, len(grafica.Matriz)),
+		MatrizOriginal: make([][]float64, len(grafica.MatrizOriginal)),
+	}
+	copy(copia.Ciudades, grafica.Ciudades)
+
+	for id, indice := range grafica.IndicePorID {
+		copia.IndicePorID[id] = indice
+	}
+
+	for i := range grafica.Matriz {
+		copia.Matriz[i] = make([]float64, len(grafica.Matriz[i]))
+		copy(copia.Matriz[i], grafica.Matriz[i])
+	}
+
+	for i := range grafica.Matriz {
+		copia.MatrizOriginal[i] = make([]float64, len(grafica.MatrizOriginal[i]))
+		copy(copia.MatrizOriginal[i], grafica.Matriz[i])
+	}
+
+	return copia
+}
+
 func ImprimirGrafica(grafica *GraficaTSP) {
 	fmt.Println("\n========== GRAFO TSP ==========")
 
