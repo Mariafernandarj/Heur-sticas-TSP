@@ -6,24 +6,19 @@ import (
 	"time"
 	"tsp-rs/internal/data"
 	"tsp-rs/internal/model"
+	"tsp-rs/internal/reporte"
 	"tsp-rs/internal/rs"
 )
 
 func main() {
 	multiPtr := flag.Bool("multi", false, "Si es true, corre varias semillas en paralelo y se queda con la mejor")
 
-	// Se recibe el archivo .tsp
 	ids, err := data.RecibirArchivo()
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	//log.Printf("[1/4] OK: Archivo procesado correctamente (%d IDs obtenidos)\n", len(ids))
-
-	//log.Println("[2/4] Conectando a la base de datos 'tsp.sql'...")
-
-	// SE conecta la base de datos
 	db, err := data.InicioDB("tsp.sql")
 	if err != nil {
 		log.Fatal("Error iniciando la BD:", err)
@@ -39,20 +34,13 @@ func main() {
 
 	log.Printf("Ciudades: %d", totalCiudades)
 	log.Printf("Conexiones: %d", totalConexiones)
-	//log.Println("[3/4] Construyendo matriz de adyacencias...")
-	// Se construye la grafica
+
 	grafica, err := model.ConstruirMatrizAdyacencias(db, ids)
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("[3/4] OK: Gráfica construida en memoria.")
 
-	// PRUEBA: gráfica original
-
-	//log.Println("Matriz de adyacencias original:")
-	//model.ImprimirGrafica(grafica)
-
-	// --- Prueba de DistanciaMaxima ---
 	peso, arista, err := model.DistanciaMaxima(*grafica)
 	if err != nil {
 		log.Fatal("Error calculando distancia máxima:", err)
@@ -94,6 +82,27 @@ func main() {
 		estadisticas.SolucionesFactibles, 100*estadisticas.PorcentajeFactibles(),
 		estadisticas.SolucionesNoFactibles, 100*(1-estadisticas.PorcentajeFactibles()))
 
+	// Guardar reporte
+	resultadoReporte := reporte.ResultadoReporte{
+		Semilla:     semilla,
+		Costo:       costo,
+		Factible:    esFactible,
+		Trayectoria: trayectoria,
+	}
+
+	rep := reporte.Reporte{
+		Modo:        "simple",
+		Semillas:    []int64{semilla},
+		Parametros:  params,
+		TiempoTotal: duracion,
+		Resultados:  []reporte.ResultadoReporte{resultadoReporte},
+	}
+	err = reporte.Guardar(rep, "reporte_simple.json")
+
+	if err != nil {
+		log.Printf("Error guardando reporte: %v", err)
+	}
+
 }
 
 func correrEnParalelo(grafica *model.GraficaTSP) {
@@ -122,4 +131,36 @@ func correrEnParalelo(grafica *model.GraficaTSP) {
 	log.Printf("[5/5] Mejor resultado: semilla=%d, costo=%.6f, factible=%v (tardó %s en total)\n",
 		mejor.Semilla, mejor.Costo, mejor.EsFactible, duracion)
 	log.Printf("  Trayectoria (%d ciudades): %v\n", len(mejor.Trayectoria), mejor.Trayectoria)
+
+	// Preparar resultados del reporte
+	resultadosReporte := make([]reporte.ResultadoReporte, 0, len(resultados))
+
+	for _, r := range resultados {
+		if r.Err != nil {
+			continue
+		}
+
+		resultadosReporte = append(resultadosReporte, reporte.ResultadoReporte{
+			Semilla:     r.Semilla,
+			Costo:       r.Costo,
+			Factible:    r.EsFactible,
+			Trayectoria: r.Trayectoria,
+		})
+	}
+
+	// Guardar reporte
+	rep := reporte.Reporte{
+		Modo:        "multi",
+		Semillas:    semillas,
+		Parametros:  params,
+		TiempoTotal: duracion,
+		Resultados:  resultadosReporte,
+	}
+
+	err := reporte.Guardar(rep, "reporte_multi.json")
+	if err != nil {
+		log.Printf("Error guardando reporte: %v", err)
+	} else {
+		log.Println("Reporte guardado correctamente.")
+	}
 }
