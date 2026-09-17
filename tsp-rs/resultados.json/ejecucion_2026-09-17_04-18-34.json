@@ -1,0 +1,68 @@
+{
+  "fecha": "2026-09-17T04:18:34.167447081-06:00",
+  "modo": "simple",
+  "semillas": [
+    42
+  ],
+  "tiempo_total": 1269478152,
+  "parametros": {
+    "lote": 200,
+    "max_intentos_por_lote": 5000,
+    "max_lotes_por_temperatura": 200,
+    "phi": 0.99,
+    "epsilon": 0.000001,
+    "aceptacion": 0.9,
+    "epsilon_p": 0.02,
+    "iteraciones_porcentaje": 200
+  },
+  "resultados": [
+    {
+      "semilla": 42,
+      "evaluacion": 0,
+      "costo": 0.2713375698404246,
+      "factible": true,
+      "trayectoria": [
+        29,
+        30,
+        0,
+        11,
+        1,
+        28,
+        6,
+        31,
+        38,
+        17,
+        33,
+        27,
+        20,
+        26,
+        8,
+        12,
+        24,
+        15,
+        35,
+        23,
+        32,
+        34,
+        4,
+        5,
+        37,
+        18,
+        2,
+        10,
+        3,
+        19,
+        22,
+        21,
+        39,
+        16,
+        9,
+        14,
+        36,
+        13,
+        7,
+        25
+      ]
+    }
+  ]
+}

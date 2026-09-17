@@ -107,6 +107,54 @@ func ResolverTSP(semilla int64, grafica *model.GraficaTSP, params Parametros) ([
 		return nil, 0, estadisticas, false, fmt.Errorf("Corriendo aceptación por umbrales: %w", err)
 	}
 
+	//Barrido final
+	mejorS, mejorCosto, err = BusquedaLocal(grafica, mejorS, N)
+	if err != nil {
+		return nil, 0, estadisticas, false, fmt.Errorf("corriendo barrido final: %w", err)
+	}
+
 	mejorEsFactible := model.EsFactible(grafica, mejorS)
 	return mejorS, mejorCosto, estadisticas, mejorEsFactible, nil
+}
+
+func BusquedaLocal(grafica *model.GraficaTSP, s []int, N float64) ([]int, float64, error) {
+	actual := append([]int(nil), s...)
+	costoActual, err := f(grafica, actual, N)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	n := len(actual)
+	mejorando := true
+
+	for mejorando {
+		mejorando = false
+
+		for i := 0; i < n-1; i++ {
+			for j := i + 1; j < n; j++ {
+				candidato := aplicar2opt(actual, i, j)
+				costoCandidato, err := f(grafica, candidato, N)
+				if err != nil {
+					return nil, 0, err
+				}
+
+				if costoCandidato < costoActual {
+					actual = candidato
+					costoActual = costoCandidato
+					mejorando = true
+				}
+			}
+		}
+	}
+
+	return actual, costoActual, nil
+}
+
+func aplicar2opt(s []int, i, j int) []int {
+	candidato := make([]int, len(s))
+	copy(candidato, s)
+	for a, b := i, j; a < b; a, b = a+1, b-1 {
+		candidato[a], candidato[b] = candidato[b], candidato[a]
+	}
+	return candidato
 }

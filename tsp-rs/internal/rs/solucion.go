@@ -1,6 +1,7 @@
 package rs
 
 import (
+	"math"
 	"math/rand"
 	"tsp-rs/internal/model"
 )
@@ -9,6 +10,7 @@ type Estadisticas struct {
 	SolucionesAceptadas   int
 	SolucionesFactibles   int
 	SolucionesNoFactibles int
+	TopesPorMaxLotes      int
 }
 
 func SolucionInicial(rng *rand.Rand, grafica *model.GraficaTSP) []int {
@@ -19,6 +21,39 @@ func SolucionInicial(rng *rand.Rand, grafica *model.GraficaTSP) []int {
 		s[i] = idx
 	}
 	return s
+}
+
+func SolucionInicialVecinoCercano(rng *rand.Rand, grafica *model.GraficaTSP, N float64) []int {
+	n := len(grafica.Ciudades)
+	visitado := make([]bool, n)
+
+	actual := rng.Intn(n)
+	visitado[actual] = true
+
+	path := make([]int, 0, n)
+	path = append(path, grafica.Ciudades[actual].ID)
+
+	for len(path) < n {
+		mejorIdx := -1
+		mejorPeso := math.Inf(1)
+
+		for j := 0; j < n; j++ {
+			if visitado[j] {
+				continue
+			}
+			peso := model.PesoAumentado(grafica, actual, j, N)
+			if peso < mejorPeso {
+				mejorPeso = peso
+				mejorIdx = j
+			}
+		}
+
+		visitado[mejorIdx] = true
+		path = append(path, grafica.Ciudades[mejorIdx].ID)
+		actual = mejorIdx
+	}
+
+	return path
 }
 
 // f evalúa la función objetivo (costo normalizado) de una solución completa
