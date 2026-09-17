@@ -1,7 +1,6 @@
 package data
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"strconv"
@@ -28,11 +27,8 @@ func CargarArchivo(path string) ([]int, error) {
 }
 
 // Función para recbir archivo desde la terminal
-func RecibirArchivo() ([]int, error) {
-	rutaPtr := flag.String("path", "input.tsp", "Ruta del archivo de entrada .tsp")
-	flag.Parse()
-
-	datos, err := CargarArchivo(*rutaPtr)
+func RecibirArchivo(ruta string) ([]int, error) {
+	datos, err := CargarArchivo(ruta)
 	if err != nil {
 		return nil, fmt.Errorf("al cargar archivo: %w", err)
 	}

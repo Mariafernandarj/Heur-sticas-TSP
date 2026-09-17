@@ -2,8 +2,12 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"strconv"
+	"strings"
 	"time"
+
 	"tsp-rs/internal/data"
 	"tsp-rs/internal/model"
 	"tsp-rs/internal/reporte"
@@ -12,8 +16,13 @@ import (
 
 func main() {
 	multiPtr := flag.Bool("multi", false, "Si es true, corre varias semillas en paralelo y se queda con la mejor")
+	semillaPtr := flag.Int64("semilla", 42, "Semilla para una ejecución simple")
+	semillasPtr := flag.String("semillas", "", "Semillas para modo multi, separadas por comas")
+	pathPtr := flag.String("path", "input.tsp", "Ruta del archivo de entrada .tsp")
 
-	ids, err := data.RecibirArchivo()
+	flag.Parse()
+
+	ids, err := data.RecibirArchivo(*pathPtr)
 
 	if err != nil {
 		log.Fatal(err)
@@ -24,22 +33,11 @@ func main() {
 		log.Fatal("Error iniciando la BD:", err)
 	}
 	defer db.Close()
-	//log.Println("[2/4] OK: Conexión establecida a la base de datos.")
-
-	totalCiudades, totalConexiones, err := data.ContarCiudadesYConexiones(db)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Printf("Ciudades: %d", totalCiudades)
-	log.Printf("Conexiones: %d", totalConexiones)
 
 	grafica, err := model.ConstruirMatrizAdyacencias(db, ids)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("[3/4] OK: Gráfica construida en memoria.")
 
 	peso, arista, err := model.DistanciaMaxima(*grafica)
 	if err != nil {
@@ -52,19 +50,28 @@ func main() {
 	log.Printf("Valor de normalización (N): %.2f\n", N)
 
 	// --- Aceptación por umbrales ---
-	log.Println("Corriendo la heurística de aceptación por umbrales...")
-	params := rs.ParametrosPorDefecto()
+	log.Println("Corriendo la heurística")
 
-	// Semilla fija
-	const semilla = 42
+	params, err := rs.LeerParametros("config.json")
+	if err != nil {
+		log.Fatal("Error leyendo los parámetros:", err)
+	}
 
 	if *multiPtr {
-		correrEnParalelo(grafica)
+		if *semillasPtr == "" {
+			log.Fatal("En modo -multi debes proporcionar -seeds")
+		}
+
+		semillas, err := parsearSemillas(*semillasPtr)
+		if err != nil {
+			log.Fatal(err)
+		}
+		correrEnParalelo(grafica, semillas, params)
 		return
 	}
 
 	inicio := time.Now()
-	trayectoria, costo, estadisticas, esFactible, err := rs.ResolverTSP(semilla, grafica, params)
+	trayectoria, costo, estadisticas, esFactible, err := rs.ResolverTSP(*semillaPtr, grafica, params)
 
 	if err != nil {
 		log.Fatal("Error corriendo aceptación por umbrales:", err)
@@ -84,32 +91,38 @@ func main() {
 
 	// Guardar reporte
 	resultadoReporte := reporte.ResultadoReporte{
-		Semilla:     semilla,
+		Semilla:     *semillaPtr,
 		Costo:       costo,
 		Factible:    esFactible,
 		Trayectoria: trayectoria,
 	}
 
 	rep := reporte.Reporte{
+		Fecha:       time.Now(),
 		Modo:        "simple",
-		Semillas:    []int64{semilla},
+		Semillas:    []int64{*semillaPtr},
 		Parametros:  params,
 		TiempoTotal: duracion,
 		Resultados:  []reporte.ResultadoReporte{resultadoReporte},
 	}
-	err = reporte.Guardar(rep, "reporte_simple.json")
 
+	err = reporte.Guardar(rep, "resultados.json")
 	if err != nil {
 		log.Printf("Error guardando reporte: %v", err)
 	}
 
+	err = reporte.GuardarTXT(rep, "resultados")
+	if err != nil {
+		log.Printf("Error guardando reporte TXT: %v", err)
+	}
+
 }
 
-func correrEnParalelo(grafica *model.GraficaTSP) {
-	semillas := []int64{1, 2, 3, 4, 5, 6, 7, 8}
-	log.Printf("[4/5] Modo -multi: corriendo %d semillas en paralelo...\n", len(semillas))
+func correrEnParalelo(grafica *model.GraficaTSP, semillas []int64,
+	params rs.Parametros) {
+	log.Printf(" Modo -multi: corriendo %d semillas en paralelo...\n", len(semillas))
 
-	params := rs.ParametrosPorDefecto()
+	params, err := rs.LeerParametros("config.json")
 
 	inicio := time.Now()
 	resultados := rs.ResolverTspParalelo(grafica, params, semillas)
@@ -128,7 +141,7 @@ func correrEnParalelo(grafica *model.GraficaTSP) {
 		log.Fatal("Todas las corridas fallaron")
 	}
 
-	log.Printf("[5/5] Mejor resultado: semilla=%d, costo=%.6f, factible=%v (tardó %s en total)\n",
+	log.Printf("Mejor resultado: semilla=%d, costo=%.6f, factible=%v (tardó %s en total)\n",
 		mejor.Semilla, mejor.Costo, mejor.EsFactible, duracion)
 	log.Printf("  Trayectoria (%d ciudades): %v\n", len(mejor.Trayectoria), mejor.Trayectoria)
 
@@ -150,6 +163,7 @@ func correrEnParalelo(grafica *model.GraficaTSP) {
 
 	// Guardar reporte
 	rep := reporte.Reporte{
+		Fecha:       time.Now(),
 		Modo:        "multi",
 		Semillas:    semillas,
 		Parametros:  params,
@@ -157,10 +171,34 @@ func correrEnParalelo(grafica *model.GraficaTSP) {
 		Resultados:  resultadosReporte,
 	}
 
-	err := reporte.Guardar(rep, "reporte_multi.json")
+	err = reporte.Guardar(rep, "reporte_multi.json")
 	if err != nil {
 		log.Printf("Error guardando reporte: %v", err)
 	} else {
 		log.Println("Reporte guardado correctamente.")
 	}
+
+	err = reporte.GuardarTXT(rep, "resultados")
+	if err != nil {
+		log.Printf("Error guardando reporte TXT: %v", err)
+	} else {
+		log.Println("Reporte TXT guardado correctamente.")
+	}
+}
+
+func parsearSemillas(texto string) ([]int64, error) {
+	partes := strings.Split(texto, ",")
+	semillas := make([]int64, 0, len(partes))
+
+	for _, parte := range partes {
+		semilla, err := strconv.ParseInt(strings.TrimSpace(parte), 10, 64)
+
+		if err != nil {
+			return nil, fmt.Errorf("semilla inválida %q: %w", parte, err)
+		}
+
+		semillas = append(semillas, semilla)
+	}
+
+	return semillas, nil
 }
