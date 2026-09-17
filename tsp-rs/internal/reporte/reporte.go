@@ -20,11 +20,12 @@ type Reporte struct {
 }
 
 type ResultadoReporte struct {
-	Semilla     int64   `json:"semilla"`
-	Evaluacion  float64 `json:"evaluacion"`
-	Costo       float64 `json:"costo"`
-	Factible    bool    `json:"factible"`
-	Trayectoria []int   `json:"trayectoria"`
+	Semilla     int64                  `json:"semilla"`
+	Evaluacion  float64                `json:"evaluacion"`
+	Costo       float64                `json:"costo"`
+	Factible    bool                   `json:"factible"`
+	Trayectoria []int                  `json:"trayectoria"`
+	Historial   []rs.PuntoConvergencia `json:"historial"`
 }
 
 func Guardar(reporte Reporte, carpeta string) error {
@@ -111,7 +112,6 @@ func GuardarTXT(reporte Reporte, carpeta string) error {
 func ConvertirResultado(r rs.ResultadoCorrida) ResultadoReporte {
 	return ResultadoReporte{
 		Semilla:     r.Semilla,
-		Evaluacion:  r.Evaluacion,
 		Costo:       r.Costo,
 		Factible:    r.EsFactible,
 		Trayectoria: r.Trayectoria,

@@ -95,6 +95,7 @@ func main() {
 		Costo:       costo,
 		Factible:    esFactible,
 		Trayectoria: trayectoria,
+		Historial:   estadisticas.Historial,
 	}
 
 	rep := reporte.Reporte{
@@ -116,13 +117,22 @@ func main() {
 		log.Printf("Error guardando reporte TXT: %v", err)
 	}
 
+	carpeta := "graficas"
+
+	rutaDat, rutaScript, err := reporte.GuardarConvergenciaGnuplot(carpeta, rep.Modo, rep.Resultados)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Datos de convergencia: %s\n", rutaDat)
+	log.Printf("Script de gnuplot: %s\n", rutaScript)
+
 }
 
 func correrEnParalelo(grafica *model.GraficaTSP, semillas []int64,
 	params rs.Parametros) {
 	log.Printf(" Modo -multi: corriendo %d semillas en paralelo...\n", len(semillas))
 
-	params, err := rs.LeerParametros("config.json")
+	//params, err := rs.LeerParametros("config.json")
 
 	inicio := time.Now()
 	resultados := rs.ResolverTspParalelo(grafica, params, semillas)
@@ -133,7 +143,12 @@ func correrEnParalelo(grafica *model.GraficaTSP, semillas []int64,
 			log.Printf("  semilla=%d -> ERROR: %v\n", r.Semilla, r.Err)
 			continue
 		}
-		log.Printf("  semilla=%d -> costo=%.6f, factible=%v\n", r.Semilla, r.Costo, r.EsFactible)
+		log.Printf("  semilla=%d -> costo=%.6f, factible=%v (aceptadas: %d, factibles: %d [%.1f%%], no factibles: %d [%.1f%%])\n",
+			r.Semilla, r.Costo, r.EsFactible,
+			r.Estadisticas.SolucionesAceptadas,
+			r.Estadisticas.SolucionesFactibles, 100*r.Estadisticas.PorcentajeFactibles(),
+			r.Estadisticas.SolucionesNoFactibles, 100*(1-r.Estadisticas.PorcentajeFactibles()),
+		)
 	}
 
 	mejor, ok := rs.MejorCorrida(resultados)
@@ -158,6 +173,7 @@ func correrEnParalelo(grafica *model.GraficaTSP, semillas []int64,
 			Costo:       r.Costo,
 			Factible:    r.EsFactible,
 			Trayectoria: r.Trayectoria,
+			Historial:   r.Estadisticas.Historial,
 		})
 	}
 
@@ -171,19 +187,26 @@ func correrEnParalelo(grafica *model.GraficaTSP, semillas []int64,
 		Resultados:  resultadosReporte,
 	}
 
-	err = reporte.Guardar(rep, "reporte_multi.json")
-	if err != nil {
+	if err := reporte.Guardar(rep, "reporte_multi.json"); err != nil {
 		log.Printf("Error guardando reporte: %v", err)
 	} else {
 		log.Println("Reporte guardado correctamente.")
 	}
 
-	err = reporte.GuardarTXT(rep, "resultados")
-	if err != nil {
-		log.Printf("Error guardando reporte TXT: %v", err)
+	if err := reporte.Guardar(rep, "reporte_multi.json"); err != nil {
+		log.Printf("Error guardando reporte: %v", err)
 	} else {
-		log.Println("Reporte TXT guardado correctamente.")
+		log.Println("Reporte guardado correctamente.")
 	}
+
+	carpeta := "graficas"
+
+	rutaDat, rutaScript, err := reporte.GuardarConvergenciaGnuplot(carpeta, rep.Modo, rep.Resultados)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("Datos de convergencia: %s\n", rutaDat)
+	log.Printf("Script de gnuplot: %s\n", rutaScript)
 }
 
 func parsearSemillas(texto string) ([]int64, error) {

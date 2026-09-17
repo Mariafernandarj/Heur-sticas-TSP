@@ -18,12 +18,15 @@ func AceptacionPorUmbrales(rng *rand.Rand, grafica *model.GraficaTSP, T float64,
 		return nil, 0, estadisticas, err
 	}
 
+	estadisticas.Historial = append(estadisticas.Historial, PuntoConvergencia{Evaluacion: 0, Costo: mejorCosto})
+
 	p := 0.0
 	for T > params.Epsilon {
 		q := math.Inf(1)
 		lotes := 0
 		for p <= q {
 			if lotes >= params.MaxLotesPorTemperatura {
+				estadisticas.TopesPorMaxLotes++
 				break
 			}
 			lotes++
@@ -47,6 +50,10 @@ func AceptacionPorUmbrales(rng *rand.Rand, grafica *model.GraficaTSP, T float64,
 			if costoActual < mejorCosto {
 				mejorCosto = costoActual
 				mejorS = append([]int(nil), s...)
+				estadisticas.Historial = append(estadisticas.Historial, PuntoConvergencia{
+					Evaluacion: estadisticas.EvaluacionesTotales,
+					Costo:      mejorCosto,
+				})
 			}
 		}
 		T *= params.Phi

@@ -5,16 +5,6 @@ import (
 	"tsp-rs/internal/model"
 )
 
-type ResultadoCorrida struct {
-	Semilla     int64
-	Trayectoria []int
-	Evaluacion  float64
-	Costo       float64
-	Stads       Estadisticas
-	EsFactible  bool
-	Err         error
-}
-
 func ResolverTspParalelo(grafica *model.GraficaTSP, params Parametros, semillas []int64) []ResultadoCorrida {
 
 	resultados := make([]ResultadoCorrida, len(semillas))
@@ -29,12 +19,12 @@ func ResolverTspParalelo(grafica *model.GraficaTSP, params Parametros, semillas 
 			trayectoria, costo, estads, esFactible, err := ResolverTSP(semilla, graficaLocal, params)
 
 			resultados[i] = ResultadoCorrida{
-				Semilla:     semilla,
-				Trayectoria: trayectoria,
-				Costo:       costo,
-				Stads:       estads,
-				EsFactible:  esFactible,
-				Err:         err,
+				Semilla:      semilla,
+				Trayectoria:  trayectoria,
+				Costo:        costo,
+				Estadisticas: estads,
+				EsFactible:   esFactible,
+				Err:          err,
 			}
 		}(i, semilla)
 	}

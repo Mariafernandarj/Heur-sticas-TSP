@@ -11,6 +11,8 @@ type Estadisticas struct {
 	SolucionesFactibles   int
 	SolucionesNoFactibles int
 	TopesPorMaxLotes      int
+	EvaluacionesTotales   int
+	Historial             []PuntoConvergencia
 }
 
 func SolucionInicial(rng *rand.Rand, grafica *model.GraficaTSP) []int {

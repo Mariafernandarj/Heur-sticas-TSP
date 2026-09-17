@@ -7,6 +7,21 @@ import (
 	"tsp-rs/internal/model"
 )
 
+type ResultadoCorrida struct {
+	Semilla      int64
+	Trayectoria  []int
+	Costo        float64
+	Estadisticas Estadisticas
+	EsFactible   bool
+	Historial    []PuntoConvergencia
+	Err          error
+}
+
+type PuntoConvergencia struct {
+	Evaluacion int     `json:"evaluacion"`
+	Costo      float64 `json:"costo"`
+}
+
 var ErrLoteIncompleto = errors.New("no se pudo completar el lote dentro del límite de intentos")
 
 func CalculaLote(rng *rand.Rand, grafica *model.GraficaTSP, T float64, s []int, N float64, params Parametros, stats *Estadisticas) (float64, []int, error) {
@@ -33,11 +48,16 @@ func CalculaLote(rng *rand.Rand, grafica *model.GraficaTSP, T float64, s []int, 
 			return 0, nil, err
 		}
 
+		if stats != nil {
+			stats.EvaluacionesTotales++
+		}
+
 		if fSPrima <= fS+T {
 			s = sPrima
 			fS = fSPrima
 			c++
 			r += fSPrima
+
 			if stats != nil {
 				stats.SolucionesAceptadas++
 				if model.EsFactible(grafica, s) {
@@ -80,6 +100,7 @@ func PorcentajeAceptados(rng *rand.Rand, grafica *model.GraficaTSP, s []int, T, 
 }
 
 func ResolverTSP(semilla int64, grafica *model.GraficaTSP, params Parametros) ([]int, float64, Estadisticas, bool, error) {
+
 	rng := rand.New(rand.NewSource(semilla))
 
 	dMax, _, err := model.DistanciaMaxima(*grafica)
