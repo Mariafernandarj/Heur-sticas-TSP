@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"time"
 
+	"tsp-rs/internal/model"
 	"tsp-rs/internal/rs"
 )
 
@@ -99,21 +102,34 @@ func GuardarTXT(reporte Reporte, carpeta string) error {
 	for _, resultado := range reporte.Resultados {
 		fmt.Fprintln(archivo)
 		fmt.Fprintf(archivo, "Semilla: %d\n", resultado.Semilla)
-		fmt.Fprintf(archivo, "Evaluación: %.6f\n", resultado.Evaluacion)
 		fmt.Fprintf(archivo, "Costo: %.6f\n", resultado.Costo)
 		fmt.Fprintf(archivo, "Factible: %v\n", resultado.Factible)
-		fmt.Fprintf(archivo, "Trayectoria: %v\n", resultado.Trayectoria)
+		//fmt.Fprintf(archivo, "Trayectoria: %v\n", resultado.Trayectoria)
+		strs := make([]string, len(resultado.Trayectoria))
+		for i, v := range resultado.Trayectoria {
+			strs[i] = strconv.Itoa(v)
+		}
+		trayectoriaStr := strings.Join(strs, ",")
+
+		fmt.Fprintf(archivo, "Trayectoria: %s\n", trayectoriaStr)
 	}
 	fmt.Fprintln(archivo)
 	fmt.Fprintln(archivo, "========================================")
 	return nil
 }
 
-func ConvertirResultado(r rs.ResultadoCorrida) ResultadoReporte {
+func ConvertirResultado(r rs.ResultadoCorrida, grafica *model.GraficaTSP) ResultadoReporte {
+	trayectoriaIDs := make([]int, len(r.Trayectoria))
+
+	for i, idx := range r.Trayectoria {
+		trayectoriaIDs[i] = grafica.Ciudades[idx].ID
+	}
+
 	return ResultadoReporte{
 		Semilla:     r.Semilla,
 		Costo:       r.Costo,
 		Factible:    r.EsFactible,
-		Trayectoria: r.Trayectoria,
+		Trayectoria: trayectoriaIDs,
+		Historial:   r.Historial,
 	}
 }

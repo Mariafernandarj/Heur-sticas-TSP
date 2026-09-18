@@ -43,11 +43,13 @@ func main() {
 	if err != nil {
 		log.Fatal("Error calculando distancia máxima:", err)
 	}
-	log.Printf("Distancia máxima encontrada: %.2f (entre %v y %v)\n", peso, arista.U, arista.V)
+	model.CompletarAristas(grafica, peso)
+
+	log.Printf("Distancia máxima encontrada: %.12f (entre %v y %v)\n", peso, arista.U, arista.V)
 
 	// --- Prueba de Normalizador ---
 	N := model.Normalizador(grafica)
-	log.Printf("Valor de normalización (N): %.2f\n", N)
+	log.Printf("Valor de normalización (N): %.12f\n", N)
 
 	// --- Aceptación por umbrales ---
 	log.Println("Corriendo la heurística")
@@ -81,7 +83,7 @@ func main() {
 	log.Printf("OK: Heurística terminada en %s\n", duracion)
 
 	log.Println("Resultado:")
-	log.Printf("  Costo (normalizado): %.6f\n", costo)
+	log.Printf("  Costo (normalizado): %.12f\n", costo)
 	log.Printf("  Trayectoria (%d ciudades): %v\n", len(trayectoria), trayectoria)
 	log.Printf("  Solución final factible: %v\n", esFactible)
 	log.Printf("  Soluciones aceptadas durante la corrida: %d (factibles: %d [%.1f%%], no factibles: %d [%.1f%%])\n",
@@ -90,13 +92,16 @@ func main() {
 		estadisticas.SolucionesNoFactibles, 100*(1-estadisticas.PorcentajeFactibles()))
 
 	// Guardar reporte
-	resultadoReporte := reporte.ResultadoReporte{
-		Semilla:     *semillaPtr,
-		Costo:       costo,
-		Factible:    esFactible,
-		Trayectoria: trayectoria,
-		Historial:   estadisticas.Historial,
+	resultadoCorrida := rs.ResultadoCorrida{
+		Semilla:      *semillaPtr,
+		Costo:        costo,
+		EsFactible:   esFactible,
+		Trayectoria:  trayectoria,
+		Estadisticas: estadisticas,
+		Historial:    estadisticas.Historial,
 	}
+
+	resultadoReporte := reporte.ConvertirResultado(resultadoCorrida, grafica)
 
 	rep := reporte.Reporte{
 		Fecha:       time.Now(),
@@ -143,7 +148,7 @@ func correrEnParalelo(grafica *model.GraficaTSP, semillas []int64,
 			log.Printf("  semilla=%d -> ERROR: %v\n", r.Semilla, r.Err)
 			continue
 		}
-		log.Printf("  semilla=%d -> costo=%.6f, factible=%v (aceptadas: %d, factibles: %d [%.1f%%], no factibles: %d [%.1f%%])\n",
+		log.Printf("  semilla=%d -> costo=%.12f, factible=%v (aceptadas: %d, factibles: %d [%.1f%%], no factibles: %d [%.1f%%])\n",
 			r.Semilla, r.Costo, r.EsFactible,
 			r.Estadisticas.SolucionesAceptadas,
 			r.Estadisticas.SolucionesFactibles, 100*r.Estadisticas.PorcentajeFactibles(),
@@ -156,7 +161,7 @@ func correrEnParalelo(grafica *model.GraficaTSP, semillas []int64,
 		log.Fatal("Todas las corridas fallaron")
 	}
 
-	log.Printf("Mejor resultado: semilla=%d, costo=%.6f, factible=%v (tardó %s en total)\n",
+	log.Printf("Mejor resultado: semilla=%d, costo=%.12f, factible=%v (tardó %s en total)\n",
 		mejor.Semilla, mejor.Costo, mejor.EsFactible, duracion)
 	log.Printf("  Trayectoria (%d ciudades): %v\n", len(mejor.Trayectoria), mejor.Trayectoria)
 
@@ -167,14 +172,9 @@ func correrEnParalelo(grafica *model.GraficaTSP, semillas []int64,
 		if r.Err != nil {
 			continue
 		}
+		resultadoReporte := reporte.ConvertirResultado(r, grafica)
 
-		resultadosReporte = append(resultadosReporte, reporte.ResultadoReporte{
-			Semilla:     r.Semilla,
-			Costo:       r.Costo,
-			Factible:    r.EsFactible,
-			Trayectoria: r.Trayectoria,
-			Historial:   r.Estadisticas.Historial,
-		})
+		resultadosReporte = append(resultadosReporte, resultadoReporte)
 	}
 
 	// Guardar reporte
@@ -193,10 +193,9 @@ func correrEnParalelo(grafica *model.GraficaTSP, semillas []int64,
 		log.Println("Reporte guardado correctamente.")
 	}
 
-	if err := reporte.Guardar(rep, "reporte_multi.json"); err != nil {
-		log.Printf("Error guardando reporte: %v", err)
-	} else {
-		log.Println("Reporte guardado correctamente.")
+	err := reporte.GuardarTXT(rep, "resultados")
+	if err != nil {
+		log.Printf("Error guardando reporte TXT: %v", err)
 	}
 
 	carpeta := "graficas"

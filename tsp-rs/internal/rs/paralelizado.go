@@ -24,6 +24,7 @@ func ResolverTspParalelo(grafica *model.GraficaTSP, params Parametros, semillas 
 				Costo:        costo,
 				Estadisticas: estads,
 				EsFactible:   esFactible,
+				Historial:    estads.Historial,
 				Err:          err,
 			}
 		}(i, semilla)

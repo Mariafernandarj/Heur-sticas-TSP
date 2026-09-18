@@ -8,7 +8,7 @@ import (
 	"tsp-rs/internal/data"
 )
 
-const R = 6_373_000.0 // Radio de la Tierra
+const R = 6373000.0 // Radio de la Tierra
 
 type GraficaTSP struct {
 	Ciudades       []data.Ciudad
@@ -73,8 +73,6 @@ func cargarConexiones(db *sql.DB, ciudades []data.Ciudad, indicePorID map[int]in
 		if err := filasConn.Scan(&id1, &id2); err != nil {
 			return fmt.Errorf("Error leyendo conections: %w", err)
 		}
-		//id1--
-		//id2--
 
 		i, okI := indicePorID[id1]
 		j, okJ := indicePorID[id2]
@@ -165,7 +163,7 @@ func CopiarGrafica(grafica GraficaTSP) *GraficaTSP {
 
 	for i := range grafica.Matriz {
 		copia.MatrizOriginal[i] = make([]float64, len(grafica.MatrizOriginal[i]))
-		copy(copia.MatrizOriginal[i], grafica.Matriz[i])
+		copy(copia.MatrizOriginal[i], grafica.MatrizOriginal[i])
 	}
 
 	return copia

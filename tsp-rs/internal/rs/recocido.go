@@ -103,19 +103,19 @@ func ResolverTSP(semilla int64, grafica *model.GraficaTSP, params Parametros) ([
 
 	rng := rand.New(rand.NewSource(semilla))
 
-	dMax, _, err := model.DistanciaMaxima(*grafica)
+	/*dMax, _, err := model.DistanciaMaxima(*grafica)
 	if err != nil {
 		return nil, 0, Estadisticas{}, false, fmt.Errorf("calculando distancia máxima: %w", err)
-	}
+	}*/
 	N := model.Normalizador(grafica)
 
 	if N == 0 {
 		return nil, 0, Estadisticas{}, false, fmt.Errorf("El normalizador N es 0: porfavor revisa la gráfica de entrada")
 	}
 
-	model.CompletarAristas(grafica, dMax)
+	//model.CompletarAristas(grafica, dMax)
 
-	s := SolucionInicial(rng, grafica)
+	s := SolucionInicialVecinoCercano(rng, grafica, N)
 
 	T0, err := TemperaturaInicial(rng, grafica, s, 8.0, params.Aceptacion, params.EpsilonP, N, params.IteracionesPorcentaje)
 

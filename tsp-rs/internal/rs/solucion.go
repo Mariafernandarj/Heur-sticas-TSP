@@ -33,7 +33,7 @@ func SolucionInicialVecinoCercano(rng *rand.Rand, grafica *model.GraficaTSP, N f
 	visitado[actual] = true
 
 	path := make([]int, 0, n)
-	path = append(path, grafica.Ciudades[actual].ID)
+	path = append(path, actual)
 
 	for len(path) < n {
 		mejorIdx := -1
@@ -51,7 +51,7 @@ func SolucionInicialVecinoCercano(rng *rand.Rand, grafica *model.GraficaTSP, N f
 		}
 
 		visitado[mejorIdx] = true
-		path = append(path, grafica.Ciudades[mejorIdx].ID)
+		path = append(path, mejorIdx)
 		actual = mejorIdx
 	}
 

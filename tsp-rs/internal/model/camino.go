@@ -13,7 +13,7 @@ type Arista struct {
 
 func DistanciaMaxima(grafica GraficaTSP) (float64, Arista, error) {
 	mejor := Arista{Peso: math.Inf(-1)}
-	for i, fila := range grafica.Matriz {
+	for i, fila := range grafica.MatrizOriginal {
 		for j := i + 1; j < len(fila); j++ {
 			peso := fila[j]
 			if math.IsInf(peso, 1) {
@@ -35,16 +35,18 @@ func DistanciaMaxima(grafica GraficaTSP) (float64, Arista, error) {
 }
 
 // El normalizador que suma las k-1 aristas mas pesadas
-func Normalizador(grafica *GraficaTSP) float64 {
-	n := len(grafica.Matriz)
+/*func Normalizador(grafica *GraficaTSP) float64 {
+	n := len(grafica.MatrizOriginal)
 
 	pesos := make([]float64, 0, n*(n-1)/2)
+
 	for i := 0; i < n; i++ {
 		for j := i + 1; j < n; j++ {
-			peso := grafica.Matriz[i][j]
+			peso := grafica.MatrizOriginal[i][j]
 			if !math.IsInf(peso, 1) {
-				pesos = append(pesos, peso)
+				continue
 			}
+			pesos = append(pesos, peso)
 		}
 	}
 
@@ -55,10 +57,60 @@ func Normalizador(grafica *GraficaTSP) float64 {
 		limite = len(pesos)
 	}
 
+	for i := 0; i < 10 && i < len(pesos); i++ {
+		fmt.Printf("[%d] %.15f\n", i, pesos[i])
+	}
+
 	var N float64
 	for _, p := range pesos[:limite] {
 		N += p
 	}
+	return N
+}*/
+
+func Normalizador(grafica *GraficaTSP) float64 {
+	n := len(grafica.MatrizOriginal)
+
+	pesos := make([]float64, 0, n*(n-1)/2)
+
+	for i := 0; i < n; i++ {
+		for j := i + 1; j < n; j++ {
+			peso := grafica.MatrizOriginal[i][j]
+
+			if math.IsInf(peso, 1) {
+				continue
+			}
+
+			pesos = append(pesos, peso)
+		}
+	}
+
+	sort.Sort(sort.Reverse(sort.Float64Slice(pesos)))
+
+	limite := n - 1
+	if limite > len(pesos) {
+		limite = len(pesos)
+	}
+
+	//fmt.Printf("\n===== NORMALIZADOR =====\n")
+	//fmt.Printf("Ciudades: %d\n", n)
+	//fmt.Printf("Aristas reales: %d\n", len(pesos))
+	//fmt.Printf("Aristas utilizadas: %d\n", limite)
+
+	//fmt.Println("Mayores pesos:")
+
+	//for i := 0; i < 10 && i < len(pesos); i++ {
+	//	fmt.Printf("[%d] %.15f\n", i, pesos[i])
+	//}
+
+	var N float64
+
+	for _, p := range pesos[:limite] {
+		N += p
+	}
+
+	fmt.Printf("N calculado: %.15f\n", N)
+
 	return N
 }
 
