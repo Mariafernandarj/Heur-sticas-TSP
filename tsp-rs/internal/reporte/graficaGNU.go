@@ -8,6 +8,9 @@ import (
 	"time"
 )
 
+/*GuardarConvergenciaGnuplot genera los archivos de datos (.dat) y de comandos (.gnuplot)
+ *necesarios para graficar la curva de convergencia de cada corrida mediante Gnuplot
+ */
 func GuardarConvergenciaGnuplot(carpeta, modo string, resultados []ResultadoReporte) (string, string, error) {
 	if err := os.MkdirAll(carpeta, 0755); err != nil {
 		return "", "", fmt.Errorf("creando carpeta de reportes: %w", err)

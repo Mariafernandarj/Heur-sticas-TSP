@@ -5,7 +5,6 @@ import (
 	"fmt"
 	_ "modernc.org/sqlite"
 	"os"
-	//"tsp-rs/internal/model"
 )
 
 type Ciudad struct {
@@ -15,7 +14,9 @@ type Ciudad struct {
 	Longitud float64
 }
 
-// Se inicializa la base de datos en memoria y ejecuta el script inicial
+/* Crea una base de datos SQLite efímera en memoria y ejecuta un script
+ * SQL para inicializar el esquema y los datos iniciales.
+ */
 func InicioDB(scriptPath string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
@@ -35,7 +36,9 @@ func InicioDB(scriptPath string) (*sql.DB, error) {
 	return db, nil
 }
 
-// Obtener ciudades de la base de datos para comprobar que la carga esta bien
+// GetCiudades recupera de la base de datos las ciudades cuyos IDs coincidan con el slice proporcionado.
+// Devuelve las ciudades encontradas, un mapa con la posición de cada ID en la lista resultante
+// (útil para mapear índices en matrices) y un posible error.
 func GetCiudades(db *sql.DB, ids []int) ([]Ciudad, map[int]int, error) {
 	filas, err := db.Query("SELECT id, name, latitude, longitude FROM cities ORDER BY id")
 

@@ -7,7 +7,9 @@ import (
 	"strings"
 )
 
-// Carga el archivo de entrada input-n.tsp
+/*Lee un archivo de texto con números separados por comas
+ *(como input-n.tsp) y devuelve los datos procesados como un slice de enteros
+ */
 func CargarArchivo(path string) ([]int, error) {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
@@ -26,7 +28,9 @@ func CargarArchivo(path string) ([]int, error) {
 	return datos, nil
 }
 
-// Función para recbir archivo desde la terminal
+/* Procesa la carga de un archivo dada su ruta e informa
+ * por consola la cantidad de elementos leídos correctamente
+ */
 func RecibirArchivo(ruta string) ([]int, error) {
 	datos, err := CargarArchivo(ruta)
 	if err != nil {

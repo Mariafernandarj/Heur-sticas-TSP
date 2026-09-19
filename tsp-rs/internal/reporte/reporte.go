@@ -13,6 +13,9 @@ import (
 	"tsp-rs/internal/rs"
 )
 
+/* Engloba los metadatos globales de la ejecución, los parámetros utilizados,
+ * el tiempo de cómputo y el conjunto de resultados obtenidos en cada corrida
+ */
 type Reporte struct {
 	Fecha       time.Time          `json:"fecha"`
 	Modo        string             `json:"modo"`
@@ -22,6 +25,9 @@ type Reporte struct {
 	Resultados  []ResultadoReporte `json:"resultados"`
 }
 
+/* Contiene los datos consolidados de la solución para una semilla,
+ *traduciendo los índices matriciales a los identificadores reales de las ciudades
+ */
 type ResultadoReporte struct {
 	Semilla     int64                  `json:"semilla"`
 	Evaluacion  float64                `json:"evaluacion"`
@@ -31,6 +37,9 @@ type ResultadoReporte struct {
 	Historial   []rs.PuntoConvergencia `json:"historial"`
 }
 
+/*Exporta la estructura Reporte a un archivo en formato JSON
+ *crea el directorio especificado si no existe y asigna un nombre con marca de tiempo
+ */
 func Guardar(reporte Reporte, carpeta string) error {
 
 	if err := os.MkdirAll(carpeta, 0755); err != nil {
@@ -65,6 +74,9 @@ func Guardar(reporte Reporte, carpeta string) error {
 	return nil
 }
 
+/* Genera un informe estructurado en texto plano (.txt), diseñado para
+ *inspección rápida por consola o lectura humana de parámetros, costos y rutas
+ */
 func GuardarTXT(reporte Reporte, carpeta string) error {
 	if err := os.MkdirAll(carpeta, 0755); err != nil {
 		return fmt.Errorf("creando carpeta de reportes: %w", err)
@@ -118,6 +130,9 @@ func GuardarTXT(reporte Reporte, carpeta string) error {
 	return nil
 }
 
+/* Transforma un ResultadoCorrida interno del paquete 'rs'
+ *a la estructura ResultadoReporte, traduciendo las posiciones matriciales a IDs de ciudades
+ */
 func ConvertirResultado(r rs.ResultadoCorrida, grafica *model.GraficaTSP) ResultadoReporte {
 	trayectoriaIDs := make([]int, len(r.Trayectoria))
 

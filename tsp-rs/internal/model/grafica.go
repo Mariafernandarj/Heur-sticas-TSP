@@ -8,8 +8,11 @@ import (
 	"tsp-rs/internal/data"
 )
 
-const R = 6373000.0 // Radio de la Tierra
+const R = 6373000.0 // Radio de la Tierra en metros
 
+/*Representa la estructura de la gráfica para el problema del agente viajero,
+ *conteniendo las ciudades, el mapeo de IDs a índices y las matrices de adyacencia
+ */
 type GraficaTSP struct {
 	Ciudades       []data.Ciudad
 	IndicePorID    map[int]int
@@ -17,6 +20,7 @@ type GraficaTSP struct {
 	MatrizOriginal [][]float64
 }
 
+// Inicializa la gráfica TSP consultando las ciudades y conexiones
 func ConstruirMatrizAdyacencias(db *sql.DB, ids []int) (*GraficaTSP, error) {
 	ciudades, indicePorID, err := data.GetCiudades(db, ids)
 	if err != nil {
@@ -29,6 +33,7 @@ func ConstruirMatrizAdyacencias(db *sql.DB, ids []int) (*GraficaTSP, error) {
 		return nil, err
 	}
 
+	// Guarda un respaldo de la matriz original antes de realizar modificaciones
 	matrizOriginal := CopiarMatriz(matriz)
 	return &GraficaTSP{
 		Ciudades:       ciudades,
@@ -38,6 +43,10 @@ func ConstruirMatrizAdyacencias(db *sql.DB, ids []int) (*GraficaTSP, error) {
 	}, nil
 }
 
+/* Asigna una matriz n x n con valores 0 en la diagonal principal (i == j)
+ * y +Infinito en las demás posiciones para representar
+ * las aristas que no existen en la BD
+ */
 func inicializarMatriz(n int) [][]float64 {
 	matriz := make([][]float64, n)
 
@@ -56,6 +65,9 @@ func inicializarMatriz(n int) [][]float64 {
 	return matriz
 }
 
+/* Consulta la tabla de conexiones en la BD, calcula la distancia real
+ * entre pares de ciudades válidos y llena la matriz de forma simétrica
+ */
 func cargarConexiones(db *sql.DB, ciudades []data.Ciudad, indicePorID map[int]int, matriz [][]float64) error {
 
 	var totalFilas, aristasCargadas int
@@ -74,6 +86,7 @@ func cargarConexiones(db *sql.DB, ciudades []data.Ciudad, indicePorID map[int]in
 			return fmt.Errorf("Error leyendo conections: %w", err)
 		}
 
+		// Verifica si ambos extremos de la conexión pertenecen al subconjunto de ciudades seleccionado
 		i, okI := indicePorID[id1]
 		j, okJ := indicePorID[id2]
 
@@ -85,6 +98,7 @@ func cargarConexiones(db *sql.DB, ciudades []data.Ciudad, indicePorID map[int]in
 
 		distancia := calcularDistancia(ciudades[i], ciudades[j])
 
+		// Asignación simétrica
 		matriz[i][j] = distancia
 		matriz[j][i] = distancia
 
@@ -97,11 +111,14 @@ func cargarConexiones(db *sql.DB, ciudades []data.Ciudad, indicePorID map[int]in
 	return nil
 }
 
+// Función auxiliar que obtiene la distancia geodésica entre dos ciudades
 func calcularDistancia(c1, c2 data.Ciudad) float64 {
 	return DistanciaNatural(c1.Latitud, c1.Longitud, c2.Latitud, c2.Longitud)
 }
 
-// Recibe latitud/longitud en grados y lo devuelve la distancia en metros
+/*Calcula la distancia entre dos puntos geográficos
+ *utilizando la fórmula de Haversine a partir de coordenadas en grados decimales
+ */
 func DistanciaNatural(latU, longU, latV, longV float64) float64 {
 	latUR := latU * math.Pi / 180
 	longUR := longU * math.Pi / 180
@@ -119,6 +136,9 @@ func DistanciaNatural(latU, longU, latV, longV float64) float64 {
 	return R * C
 }
 
+/* Recorre la matriz de adyacencia y reemplaza las aristas inexistentes (+Inf)
+ * por un peso aumentado basado en la distancia máxima de la gráfica (dMax)
+ */
 func CompletarAristas(grafica *GraficaTSP, dMax float64) {
 	for i := 0; i < len(grafica.Matriz); i++ {
 		for j := i + 1; j < len(grafica.Matriz); j++ {
@@ -132,6 +152,7 @@ func CompletarAristas(grafica *GraficaTSP, dMax float64) {
 	}
 }
 
+// Realiza una copia profunda de una matriz de flotantes de dos dimensiones
 func CopiarMatriz(matriz [][]float64) [][]float64 {
 	copia := make([][]float64, len(matriz))
 
@@ -143,6 +164,9 @@ func CopiarMatriz(matriz [][]float64) [][]float64 {
 	return copia
 }
 
+/*Genera una réplica independiente de la estructura GraficaTSP
+ *incluyendo slices, mapas y matrices internas para evitar Data Races en concurrencia
+ */
 func CopiarGrafica(grafica GraficaTSP) *GraficaTSP {
 	copia := &GraficaTSP{
 		Ciudades:       make([]data.Ciudad, len(grafica.Ciudades)),
@@ -169,6 +193,9 @@ func CopiarGrafica(grafica GraficaTSP) *GraficaTSP {
 	return copia
 }
 
+/* Despliega por consola la información tabulada de las ciudades
+ * y la matriz de adyacencia formateada con alineación de columnas
+ */
 func ImprimirGrafica(grafica *GraficaTSP) {
 	fmt.Println("\n========== GRAFO TSP ==========")
 

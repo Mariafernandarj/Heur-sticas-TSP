@@ -1,0 +1,95 @@
+# ==========================================
+
+# Archivos temporales y respaldos de editores
+
+# ==========================================
+
+*~
+*.swp
+*.swo
+*.tmp
+*.bak
+
+# Archivos de respaldo de Emacs
+
+#*#
+
+# ==========================================
+
+# Go
+
+# ==========================================
+
+# Ejecutables compilados
+
+tsp-rs/tsp-rs
+tsp-rs/tsp
+tsp-rs/cmd/tsp/tsp
+
+# Coverage y perfiles
+
+*.out
+coverage.out
+*.prof
+
+# ==========================================
+
+# Resultados generados automáticamente
+
+# ==========================================
+
+# Gráficas generadas por el programa
+
+tsp-rs/graficas/
+
+# Resultados de ejecuciones
+
+tsp-rs/resultados/
+tsp-rs/resultados.json/
+tsp-rs/reporte_multi.json/
+
+# Archivos generados por Gnuplot
+
+*.dat
+*.gnuplot
+
+# ==========================================
+
+# Archivos temporales del proyecto TSP
+
+# ==========================================
+
+*.tsp~
+*.txt~
+
+# ==========================================
+
+# LaTeX
+
+# ==========================================
+
+# Archivos auxiliares generados al compilar
+
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Archivos de respaldo
+
+*.tex~
+
+# ==========================================
+
+# Sistema operativo
+
+# ==========================================
+
+.DS_Store
+Thumbs.db
+EOF
