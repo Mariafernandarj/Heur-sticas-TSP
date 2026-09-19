@@ -1,14 +1,15 @@
 package data
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
 )
 
-// Carga el archivo de entrada input-n.tsp
+/*Lee un archivo de texto con números separados por comas
+ *(como input-n.tsp) y devuelve los datos procesados como un slice de enteros
+ */
 func CargarArchivo(path string) ([]int, error) {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
@@ -27,16 +28,15 @@ func CargarArchivo(path string) ([]int, error) {
 	return datos, nil
 }
 
-// Función para recbir archivo desde la terminal
-func RecibirArchivo() ([]int, error) {
-	rutaPtr := flag.String("path", "input.tsp", "Ruta del archivo de entrada .tsp")
-	flag.Parse()
-
-	datos, err := CargarArchivo(*rutaPtr)
+/* Procesa la carga de un archivo dada su ruta e informa
+ * por consola la cantidad de elementos leídos correctamente
+ */
+func RecibirArchivo(ruta string) ([]int, error) {
+	datos, err := CargarArchivo(ruta)
 	if err != nil {
 		return nil, fmt.Errorf("al cargar archivo: %w", err)
 	}
 	fmt.Printf("Se leyeron ls %d elementos correctamente:\n", len(datos))
-	//fmt.Println(datos)
+
 	return datos, nil
 }
